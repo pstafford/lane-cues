@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lane Cues</title>
+<meta name="description" content="Mix a coach's voice cues into your own swim music, with ducking tuned for bone-conduction headphones. Files stay in your browser.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Lane <span>Cues</span></h1>
+    <p>Drop a coach's voice clips into your own swim playlist. The music dips under each cue, then swells back. You get one MP3 to copy onto open-ear or bone-conduction swim headphones. Everything stays in this browser; nothing is uploaded.</p>
+  </header>
+  <div class="lane" aria-hidden="true"></div>
+
+  <section id="musicDrop">
+    <h2><span class="n">1</span>Music playlist</h2>
+    <div class="row">
+      <label class="filebtn">Add music<input id="musicIn" type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" multiple></label>
+      <div class="meta" id="musicMeta"></div>
+    </div>
+    <ul class="list" id="trackList"></ul>
+    <div class="row" id="xfadeRow" hidden>
+      <label class="meta" for="xfade">Between tracks</label>
+      <select id="xfade">
+        <option value="0">Back to back</option>
+        <option value="2">2 s gap</option>
+        <option value="-3" selected>3 s crossfade</option>
+        <option value="-6">6 s crossfade</option>
+      </select>
+    </div>
+  </section>
+
+  <section id="clipDrop">
+    <h2><span class="n">2</span>Voice clips</h2>
+    <div class="row">
+      <label class="filebtn">Add voice clips<input id="clipIn" type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" multiple></label>
+      <p class="hint">Short recordings, such as iPhone Voice Memos: "Build to threshold pace", "Last 200, hold form".</p>
+    </div>
+    <ul class="list" id="clipList"></ul>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span>Cue times</h2>
+    <p class="hint">Time from the start of the whole mix, as m:ss. A bare number means minutes, so <span class="t">5</span> becomes <span class="t">5:00</span>.</p>
+    <div id="cueList"></div>
+    <div class="row"><button id="addCue" type="button">+ Add cue</button></div>
+    <details>
+      <summary>Repeat a clip on an interval</summary>
+      <div class="repeat">
+        <label>Clip<select id="repClip"></select></label>
+        <label>First at<input id="repFrom" type="text" value="2:00" inputmode="numeric"></label>
+        <label>Every (min)<input id="repEvery" type="number" value="5" min="0.25" step="0.25"></label>
+        <label>Until<input id="repTo" type="text" value="" placeholder="end" inputmode="numeric"></label>
+        <button id="repAdd" type="button">Add cues</button>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <div class="set-head">
+      <h2><span class="n">4</span>Mix for the water</h2>
+      <button id="resetSets" type="button" class="ghost">Reset to defaults</button>
+    </div>
+    <p class="hint">Defaults are tuned for bone conduction in a pool: deep ducking, a clearer voice, mono, and a hard ceiling so cues stay audible over splash and breathing.</p>
+    <div class="sets">
+      <div class="set"><div class="top"><span>Music dips to</span><span class="val" id="duckV"></span></div>
+        <input id="duck" type="range" min="-30" max="-3" step="1" value="-18"><small>How far the music drops under a cue.</small></div>
+      <div class="set"><div class="top"><span>Voice level</span><span class="val" id="boostV"></span></div>
+        <input id="boost" type="range" min="-6" max="9" step="1" value="3"><small>Gain on the voice clips before mixing.</small></div>
+      <div class="set"><div class="top"><span>Fade down</span><span class="val" id="fdownV"></span></div>
+        <input id="fdown" type="range" min="0.1" max="3" step="0.1" value="0.6"><small>Time the music takes to dip.</small></div>
+      <div class="set"><div class="top"><span>Fade back up</span><span class="val" id="fupV"></span></div>
+        <input id="fup" type="range" min="0.2" max="5" step="0.1" value="1.5"><small>Time to swell back after the cue.</small></div>
+      <div class="set"><div class="top"><span>Head start</span><span class="val" id="preV"></span></div>
+        <input id="pre" type="range" min="0" max="2" step="0.1" value="0.4"><small>Music is already down this long before the voice begins.</small></div>
+      <div class="set"><div class="top"><span>MP3 quality</span><span class="val" id="kbpsV"></span></div>
+        <select id="kbps"><option value="96">96 kbps (smallest)</option><option value="128" selected>128 kbps</option><option value="160">160 kbps</option><option value="192">192 kbps</option></select>
+        <small>128 is plenty for bone conduction.</small></div>
+    </div>
+    <div class="toggles">
+      <label class="tog"><input id="bone" type="checkbox" checked><span><b>Bone-conduction EQ</b><small>Trims deep bass from the music (it buzzes on the cheekbone) and lifts the voice's speech range.</small></span></label>
+      <label class="tog"><input id="mono" type="checkbox" checked><span><b>Mono</b><small>Same audio on both sides, so a cue isn't lost if one pad shifts under your cap.</small></span></label>
+      <label class="tog"><input id="limit" type="checkbox" checked><span><b>Loud and level</b><small>Limiter plus peak normalising, for headroom on a small transducer.</small></span></label>
+      <label class="tog"><input id="chime" type="checkbox"><span><b>Attention chime</b><small>A short two-note ping just before each cue. Useful mid-turn or underwater.</small></span></label>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">5</span>Preview and save</h2>
+    <div class="timeline"><canvas id="tl" aria-label="Timeline of the music with cue markers"></canvas></div>
+    <div class="jump" id="jump"></div>
+    <div class="row">
+      <button id="renderBtn" class="primary" type="button" disabled>Mix it</button>
+      <button id="playBtn" type="button" disabled>Play</button>
+      <button id="saveBtn" type="button" disabled>Save MP3</button>
+    </div>
+    <div class="bar" id="bar" hidden><i id="barFill"></i></div>
+    <div class="status" id="status" role="status"></div>
+  </section>
+
+  <footer>
+    <details>
+      <summary>Getting the MP3 onto swim headphones</summary>
+      <ol>
+        <li>Connect the headphones to a computer with their charging/USB cable. Most MP3-mode swim headphones, such as the Shokz OpenSwim range, appear as a drive.</li>
+        <li>Drag the saved MP3 onto that drive, then eject it before unplugging.</li>
+        <li>Switch the headphones to MP3 mode if they also have Bluetooth.</li>
+      </ol>
+    </details>
+    <div>Works with MP3, M4A (AAC) and WAV. Music bought from or downloaded through Apple Music is copy-protected and can't be read.</div>
+    <div>MP3 encoding uses <a href="https://github.com/zhuker/lamejs">lamejs</a>, a port of <a href="https://lame.sourceforge.io/">LAME</a> (LGPL).</div>
+    <div>Keep a mix to about an hour, especially on a phone: the browser holds every track in memory while mixing.</div>
+  </footer>
+</div>
+<script src="vendor/lame.min.js"></script>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
